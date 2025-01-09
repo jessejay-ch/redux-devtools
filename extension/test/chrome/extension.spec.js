@@ -1,10 +1,8 @@
 import { resolve } from 'path';
 import webdriver from 'selenium-webdriver';
 import chrome from 'selenium-webdriver/chrome';
-import chromedriver from 'chromedriver';
 import { switchMonitorTests, delay } from '../utils/e2e';
 
-const port = 9515;
 const path = resolve(__dirname, '..', '..', 'dist');
 const extensionId = 'lmhkpmbekcpmknklioeibfkpmmfibljd';
 const actionsPattern =
@@ -14,12 +12,11 @@ describe('Chrome extension', function () {
   let driver;
 
   beforeAll(async () => {
-    chromedriver.start();
-    await delay(2000);
     driver = new webdriver.Builder()
-      .usingServer(`http://localhost:${port}`)
       .setChromeOptions(
-        new chrome.Options().addArguments(`load-extension=${path}`)
+        new chrome.Options()
+          .setBrowserVersion('stable')
+          .addArguments(`load-extension=${path}`),
       )
       .forBrowser('chrome')
       .build();
@@ -27,13 +24,12 @@ describe('Chrome extension', function () {
 
   afterAll(async () => {
     await driver.quit();
-    chromedriver.stop();
   });
 
   it("should open extension's window", async () => {
-    await driver.get(`chrome-extension://${extensionId}/window.html#left`);
+    await driver.get(`chrome-extension://${extensionId}/devpanel.html`);
     const url = await driver.getCurrentUrl();
-    expect(url).toBe(`chrome-extension://${extensionId}/window.html#left`);
+    expect(url).toBe(`chrome-extension://${extensionId}/devpanel.html`);
   });
 
   it('should match document title', async () => {
@@ -41,29 +37,8 @@ describe('Chrome extension', function () {
     expect(title).toBe('Redux DevTools');
   });
 
-  it("should contain inspector monitor's component", async () => {
-    await delay(1000);
-    const val = await driver
-      .findElement(webdriver.By.xpath('//div[contains(@class, "inspector-")]'))
-      .getText();
-    expect(val).toBeDefined();
-  });
-
-  it('should contain an empty actions list', async () => {
-    const val = await driver
-      .findElement(
-        webdriver.By.xpath('//div[contains(@class, "actionListRows-")]')
-      )
-      .getText();
-    expect(val).toBe('');
-  });
-
-  Object.keys(switchMonitorTests).forEach((description) =>
-    it(description, () => switchMonitorTests[description](driver))
-  );
-
   it('should get actions list', async () => {
-    const url = 'http://zalmoxisus.github.io/examples/router/';
+    const url = 'https://zalmoxisus.github.io/examples/router/';
     await driver.executeScript(`window.open('${url}')`);
     await delay(2000);
 
@@ -74,18 +49,29 @@ describe('Chrome extension', function () {
 
     await driver.switchTo().window(tabs[0]);
 
+    await delay(1000);
     const result = await driver.wait(
       driver
-        .findElement(
-          webdriver.By.xpath('//div[contains(@class, "actionListRows-")]')
-        )
+        .findElement(webdriver.By.xpath('//div[@data-testid="actionListRows"]'))
         .getText()
         .then((val) => {
           return actionsPattern.test(val);
         }),
       15000,
-      "it doesn't match actions pattern"
+      "it doesn't match actions pattern",
     );
     expect(result).toBeTruthy();
   });
+
+  it("should contain inspector monitor's component", async () => {
+    const val = await driver
+      .findElement(webdriver.By.xpath('//div[@data-testid="inspector"]'))
+      .getText();
+    expect(val).toBeDefined();
+  });
+
+  Object.keys(switchMonitorTests).forEach((description) =>
+    // eslint-disable-next-line jest/expect-expect,jest/valid-title
+    it(description, () => switchMonitorTests[description](driver)),
+  );
 });

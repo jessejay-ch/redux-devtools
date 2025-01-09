@@ -1,5 +1,5 @@
 import React from 'react';
-import { FieldProps, Widget, WidgetProps } from '@rjsf/core';
+import { FieldProps, Widget, WidgetProps } from '@rjsf/utils';
 import Select from '../Select';
 import Slider from '../Slider';
 
@@ -21,7 +21,7 @@ const SelectWidget: Widget = ({
       onChange(option?.value);
     }}
     value={(options.enumOptions as { label: string; value: string }[]).find(
-      (option) => option.value === value
+      (option) => option.value === value,
     )}
     {...rest}
   />

@@ -1,5 +1,60 @@
 # Change Log
 
+## 4.0.0
+
+### Major Changes
+
+- 4dd0dd2: Require Node.js 18
+
+## 3.0.4
+
+### Patch Changes
+
+- Updated dependencies [5cfe3e5]
+  - @redux-devtools/app@6.0.0
+
+## 3.0.3
+
+### Patch Changes
+
+- Updated dependencies [158ba2c]
+  - @redux-devtools/app@5.0.0
+
+## 3.0.2
+
+### Patch Changes
+
+- Updated dependencies [e57bcb39]
+  - @redux-devtools/app@4.0.0
+
+## 3.0.1
+
+### Patch Changes
+
+- Updated dependencies [57751ff9]
+  - @redux-devtools/app@3.0.0
+
+## 3.0.0
+
+### Major Changes
+
+- 81ba239e: Dropped support for Node.js 14.
+
+### Patch Changes
+
+- @redux-devtools/app@2.2.2
+
+## 2.0.0
+
+### Major Changes
+
+- 7e129988: Convert @redux-devtools/cli to ESM. Please [read this](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) for more info about ESM.
+  Update supported Node versions from `>=14.15.0` to `^14.13.1 || ^16.13.0 || >=18.12.0`.
+
+### Patch Changes
+
+- a7729dae: Updates `--open` flag to respect protocol and host when provided
+
 ## 1.0.7
 
 ### Patch Changes

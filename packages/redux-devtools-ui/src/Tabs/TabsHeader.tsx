@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import observeResize from 'simple-element-resize-detector';
 import { FaAngleDoubleRight } from 'react-icons/fa';
 import ContextMenu from '../ContextMenu';
@@ -144,8 +143,8 @@ export default class TabsHeader<P> extends Component<Props<P>, State> {
           tabsRef!.getBoundingClientRect().width + this.hiddenTabsWidth[0] <
             tabsWrapperRef!.getBoundingClientRect().width
         ) {
-          hiddenTab = hiddenTabs.shift();
-          visibleTabs.splice(Number(hiddenTab!.key), 0, hiddenTab!);
+          hiddenTab = hiddenTabs.shift()!;
+          visibleTabs.splice(Number(hiddenTab.key), 0, hiddenTab);
           i++;
         }
       } else {
@@ -158,7 +157,7 @@ export default class TabsHeader<P> extends Component<Props<P>, State> {
           if ((tabButtons[i] as HTMLButtonElement).value !== selected) {
             hiddenTabs.unshift(...visibleTabs.splice(i, 1));
             this.hiddenTabsWidth.unshift(
-              tabButtons[i].getBoundingClientRect().width
+              tabButtons[i].getBoundingClientRect().width,
             );
           } else {
             tabsWrapperRight -= tabButtons[i].getBoundingClientRect().width;
@@ -173,8 +172,8 @@ export default class TabsHeader<P> extends Component<Props<P>, State> {
         tabButtons[i].getBoundingClientRect().right + this.hiddenTabsWidth[0] <
           tabsWrapperRight - this.iconWidth
       ) {
-        hiddenTab = hiddenTabs.shift();
-        visibleTabs.splice(Number(hiddenTab!.key), 0, hiddenTab!);
+        hiddenTab = hiddenTabs.shift()!;
+        visibleTabs.splice(Number(hiddenTab.key), 0, hiddenTab);
         this.hiddenTabsWidth.shift();
         i++;
       }
@@ -234,14 +233,4 @@ export default class TabsHeader<P> extends Component<Props<P>, State> {
       </TabsWrapper>
     );
   }
-
-  static propTypes = {
-    tabs: PropTypes.array.isRequired,
-    items: PropTypes.array.isRequired,
-    main: PropTypes.bool,
-    onClick: PropTypes.func,
-    position: PropTypes.string,
-    collapsible: PropTypes.bool,
-    selected: PropTypes.string,
-  };
 }

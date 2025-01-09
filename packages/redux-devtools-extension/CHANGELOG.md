@@ -1,5 +1,29 @@
 # Change Log
 
+## 3.3.0
+
+### Minor Changes
+
+- a3f86a42: Add Redux 5 to peerDependency range of extension package
+
+## 3.2.6
+
+### Patch Changes
+
+- 65205f90: Replace Action<unknown> with Action<string>
+
+## 3.2.5
+
+### Patch Changes
+
+- a0716740: Fix types for other exports from `@redux-devtools/extension`.
+
+## 3.2.4
+
+### Patch Changes
+
+- 07456db4: Propagate store enhancer generic type when using composeWithDevTools
+
 ## 3.2.3
 
 ### Patch Changes

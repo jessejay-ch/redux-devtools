@@ -26,7 +26,7 @@ const json = {
 
 #### Result:
 
-![](http://cl.ly/image/3f2C2k2t3D0o/screenshot%202015-08-26%20at%2010.24.12%20AM.png)
+![](https://i.ibb.co/0KSYRJg/example-result.png)
 
 Check out [examples](examples) directory for more details.
 
@@ -139,7 +139,7 @@ Their full signatures are:
 
 #### More Options
 
-- `shouldExpandNode: function(keyPath, data, level)` - determines if node should be expanded (root is expanded by default)
+- `shouldExpandNodeInitially: function(keyPath, data, level)` - determines if node should be expanded when it first renders (root is expanded by default)
 - `hideRoot: boolean` - if `true`, the root node is hidden.
 - `sortObjectKeys: boolean | function(a, b)` - sorts object keys with compare function (optional). Isn't applied to iterable maps like `Immutable.Map`.
 - `postprocessValue: function(value)` - maps `value` to a new `value`

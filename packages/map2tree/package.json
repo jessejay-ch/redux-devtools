@@ -1,6 +1,6 @@
 {
   "name": "map2tree",
-  "version": "2.1.0",
+  "version": "4.0.0",
   "description": "Utility for mapping maps to trees",
   "keywords": [
     "map2tree",
@@ -19,58 +19,33 @@
     "lib",
     "src"
   ],
-  "main": "lib/cjs/index.js",
-  "module": "lib/esm/index.js",
-  "types": "lib/types/index.d.ts",
-  "unpkg": "lib/umd/map2tree.umd.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "type": "module",
   "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/reduxjs/redux-devtools.git"
   },
   "scripts": {
-    "build": "pnpm run build:cjs && pnpm run build:esm && pnpm run build:types && pnpm run build:umd",
-    "build:cjs": "babel src --extensions \".ts\" --out-dir lib/cjs",
-    "build:esm": "babel src --config-file ./babel.config.esm.json --extensions \".ts\" --out-dir lib/esm",
-    "build:types": "tsc --emitDeclarationOnly",
-    "build:umd": "rollup -c",
+    "build": "tsc",
     "clean": "rimraf lib",
-    "test": "jest",
-    "lint": "eslint . --ext .ts",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "prepack": "pnpm run clean && pnpm run build",
-    "prepublish": "pnpm run type-check && pnpm run lint && pnpm run test"
+    "prepublish": "pnpm run lint && pnpm run test"
   },
   "dependencies": {
-    "@babel/runtime": "^7.20.6",
-    "lodash": "^4.17.21"
+    "lodash-es": "^4.17.21"
   },
   "devDependencies": {
-    "@babel/cli": "^7.19.3",
-    "@babel/core": "^7.20.5",
-    "@babel/eslint-parser": "^7.19.1",
-    "@babel/plugin-transform-runtime": "^7.19.6",
-    "@babel/preset-env": "^7.20.2",
-    "@babel/preset-typescript": "^7.18.6",
-    "@rollup/plugin-babel": "^6.0.3",
-    "@rollup/plugin-commonjs": "^24.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.2.1",
-    "@types/jest": "^29.2.4",
-    "@types/lodash": "^4.14.191",
-    "@types/node": "^18.11.17",
-    "@typescript-eslint/eslint-plugin": "^5.47.0",
-    "@typescript-eslint/parser": "^5.47.0",
-    "eslint": "^8.30.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-jest": "^27.1.7",
-    "immutable": "^4.1.0",
-    "jest": "^29.3.1",
-    "rimraf": "^3.0.2",
-    "rollup": "^3.7.5",
-    "rollup-plugin-typescript2": "^0.34.1",
-    "ts-jest": "^29.0.3",
-    "tslib": "^2.4.1",
-    "typescript": "~4.9.4"
+    "@types/jest": "^29.5.14",
+    "@types/lodash-es": "^4.17.12",
+    "immutable": "^4.3.7",
+    "jest": "^29.7.0",
+    "rimraf": "^6.0.1",
+    "ts-jest": "^29.2.5",
+    "typescript": "~5.7.3"
   }
 }

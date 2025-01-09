@@ -9,7 +9,7 @@ export interface UpdateMonitorStateAction {
   monitorState: Partial<DevtoolsInspectorState>;
 }
 export function updateMonitorState(
-  monitorState: Partial<DevtoolsInspectorState>
+  monitorState: Partial<DevtoolsInspectorState>,
 ): UpdateMonitorStateAction {
   return { type: UPDATE_MONITOR_STATE, monitorState };
 }
@@ -35,7 +35,7 @@ export const DEFAULT_STATE: DevtoolsInspectorState = {
 
 function reduceUpdateState(
   state: DevtoolsInspectorState,
-  action: DevtoolsInspectorAction
+  action: DevtoolsInspectorAction,
 ) {
   return action.type === UPDATE_MONITOR_STATE
     ? {
@@ -45,10 +45,10 @@ function reduceUpdateState(
     : state;
 }
 
-export function reducer<S, A extends Action<unknown>>(
+export function reducer<S, A extends Action<string>>(
   props: DevtoolsInspectorProps<S, A>,
   state = DEFAULT_STATE,
-  action: DevtoolsInspectorAction
+  action: DevtoolsInspectorAction,
 ) {
   return {
     ...reduceUpdateState(state, action),

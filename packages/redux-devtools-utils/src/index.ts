@@ -11,14 +11,13 @@ export function generateId(id: string | undefined) {
 
 export interface ActionCreatorObject {
   readonly name: string;
-  readonly func: ActionCreator<Action<unknown>>;
+  readonly func: ActionCreator<Action<string>>;
   readonly args: readonly string[];
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 function flatTree(
-  obj: { [key: string]: ActionCreator<Action<unknown>> },
-  namespace = ''
+  obj: { [key: string]: ActionCreator<Action<string>> },
+  namespace = '',
 ) {
   let functions: ActionCreatorObject[] = [];
   Object.keys(obj).forEach((key) => {
@@ -65,7 +64,7 @@ export function getMethods(obj: unknown) {
 }
 
 export function getActionsArray(actionCreators: {
-  [key: string]: ActionCreator<Action<unknown>>;
+  [key: string]: ActionCreator<Action<string>>;
 }) {
   if (Array.isArray(actionCreators)) return actionCreators;
   return flatTree(actionCreators);
@@ -85,7 +84,7 @@ function evalArgs(inArgs: string[], restArgs: string): unknown[] {
 
 export function evalAction(
   action: string | { args: string[]; rest: string; selected: number },
-  actionCreators: readonly ActionCreatorObject[]
+  actionCreators: readonly ActionCreatorObject[],
 ) {
   if (typeof action === 'string') {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
@@ -99,7 +98,7 @@ export function evalAction(
 
 export function evalMethod(
   action: string | { args: string[]; rest: string; name: string },
-  obj: unknown
+  obj: unknown,
 ) {
   if (typeof action === 'string') {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
@@ -110,7 +109,7 @@ export function evalMethod(
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
   return new Function('args', `return this.${action.name}(args)`).apply(
     obj,
-    args
+    args,
   );
 }
 /* eslint-enable */
@@ -129,7 +128,7 @@ function tryCatchStringify(obj: unknown) {
       null as unknown as undefined,
       {
         circular: '[CIRCULAR]',
-      } as unknown as boolean
+      } as unknown as boolean,
     );
   }
 }
@@ -141,7 +140,7 @@ export function stringify(
         replacer?: (key: string, value: unknown) => unknown;
         options?: unknown | boolean;
       }
-    | true
+    | true,
 ) {
   if (typeof serialize === 'undefined') {
     return tryCatchStringify(obj);
@@ -155,14 +154,14 @@ export function stringify(
         return value;
       },
       null as unknown as undefined,
-      true
+      true,
     );
   }
   return jsan.stringify(
     obj,
     serialize.replacer,
     null as unknown as undefined,
-    serialize.options as boolean
+    serialize.options as boolean,
   );
 }
 
@@ -177,7 +176,7 @@ export function getSeralizeParameter(
         }
       | boolean;
   },
-  param: string
+  param: string,
 ):
   | {
       replacer?: (key: string, value: unknown) => unknown;
@@ -210,17 +209,17 @@ export function getSeralizeParameter(
   // eslint-disable-next-line no-console
   console.warn(
     `\`${param}\` parameter for Redux DevTools Extension is deprecated. Use \`serialize\` parameter instead:` +
-      ' https://github.com/zalmoxisus/redux-devtools-extension/releases/tag/v2.12.1'
+      ' https://github.com/zalmoxisus/redux-devtools-extension/releases/tag/v2.12.1',
   );
 
   return value;
 }
 
 export function getStackTrace(
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   config: { trace?: () => {}; traceLimit: number },
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  toExcludeFromTrace?: Function | undefined
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  toExcludeFromTrace?: Function | undefined,
 ) {
   if (!config.trace) return undefined;
   if (typeof config.trace === 'function') return config.trace();
@@ -246,6 +245,7 @@ export function getStackTrace(
     typeof Error.stackTraceLimit !== 'number' ||
     Error.stackTraceLimit > traceLimit
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const frames = stack!.split('\n');
     if (frames.length > traceLimit) {
       stack = frames

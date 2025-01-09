@@ -8,10 +8,12 @@
 import React, { Component, CSSProperties } from 'react';
 import CodeBlock from './StackFrameCodeBlock';
 import { getPrettyURL } from '../utils/getPrettyURL';
-import { nicinabox as theme } from 'redux-devtools-themes';
+import { base16Themes } from 'react-base16-styling';
 
 import type { StackFrame as StackFrameType } from '../utils/stack-frame';
 import type { ErrorLocation } from '../utils/parseCompileError';
+
+const theme = base16Themes.nicinabox;
 
 const linkStyle: CSSProperties = {
   fontSize: '0.9em',
@@ -74,7 +76,7 @@ class StackFrame extends Component<Props, State> {
       return null;
     }
     // e.g. "/path-to-my-app/webpack/bootstrap eaddeb46b67d75e4dfc1"
-    const isInternalWebpackBootstrapCode = fileName.trim().indexOf(' ') !== -1;
+    const isInternalWebpackBootstrapCode = fileName.trim().includes(' ');
     if (isInternalWebpackBootstrapCode) {
       return null;
     }
@@ -91,7 +93,7 @@ class StackFrame extends Component<Props, State> {
   };
 
   onKeyDown: React.KeyboardEventHandler<HTMLSpanElement> = (
-    e /* : SyntheticKeyboardEvent<> */
+    e /* : SyntheticKeyboardEvent<> */,
   ) => {
     if (e.key === 'Enter') {
       this.editorHandler();
@@ -120,7 +122,7 @@ class StackFrame extends Component<Props, State> {
       fileName,
       lineNumber,
       columnNumber,
-      compiled
+      compiled,
     );
 
     let codeBlockProps = null;

@@ -1,6 +1,6 @@
 {
   "name": "d3-state-visualizer",
-  "version": "1.6.0",
+  "version": "3.0.0",
   "description": "Visualize your app state with a range of reusable charts",
   "keywords": [
     "d3",
@@ -20,57 +20,33 @@
     "lib",
     "src"
   ],
-  "main": "lib/cjs/index.js",
-  "module": "lib/esm/index.js",
-  "types": "lib/types/index.d.ts",
-  "unpkg": "dist/d3-state-visualizer.umd.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "type": "module",
   "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/reduxjs/redux-devtools.git"
   },
   "scripts": {
-    "build": "pnpm run build:cjs && pnpm run build:esm && pnpm run build:types && pnpm run build:umd",
-    "build:cjs": "babel src --extensions \".ts\" --out-dir lib/cjs",
-    "build:esm": "babel src --config-file ./babel.config.esm.json --extensions \".ts\" --out-dir lib/esm",
-    "build:types": "tsc --emitDeclarationOnly",
-    "build:umd": "rollup -c",
+    "build": "tsc",
     "clean": "rimraf lib",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "prepack": "pnpm run clean && pnpm run build",
-    "prepublish": "pnpm run type-check && pnpm run lint"
+    "prepublish": "pnpm run lint"
   },
   "dependencies": {
-    "@babel/runtime": "^7.20.6",
-    "@types/d3": "^3.5.47",
-    "d3": "^3.5.17",
-    "d3tooltip": "^2.1.0",
-    "deepmerge": "^4.2.2",
-    "map2tree": "^2.1.0",
-    "ramda": "^0.28.0"
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0",
+    "d3tooltip": "workspace:^",
+    "deepmerge": "^4.3.1",
+    "map2tree": "workspace:^",
+    "ramda": "^0.30.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.19.3",
-    "@babel/core": "^7.20.5",
-    "@babel/eslint-parser": "^7.19.1",
-    "@babel/plugin-transform-runtime": "^7.19.6",
-    "@babel/preset-env": "^7.20.2",
-    "@babel/preset-typescript": "^7.18.6",
-    "@rollup/plugin-babel": "^6.0.3",
-    "@rollup/plugin-commonjs": "^24.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.2.1",
-    "@types/node": "^18.11.17",
-    "@types/ramda": "^0.28.20",
-    "@typescript-eslint/eslint-plugin": "^5.47.0",
-    "@typescript-eslint/parser": "^5.47.0",
-    "eslint": "^8.30.0",
-    "eslint-config-prettier": "^8.5.0",
-    "rimraf": "^3.0.2",
-    "rollup": "^3.7.5",
-    "rollup-plugin-typescript2": "^0.34.1",
-    "tslib": "^2.4.1",
-    "typescript": "~4.9.4"
+    "@types/ramda": "^0.30.2",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.7.3"
   }
 }
