@@ -8,10 +8,10 @@ declare global {
   }
 }
 
-export default class Monitor<S, A extends Action<unknown>> {
+export default class Monitor<S, A extends Action<string>> {
   update: (
     liftedState?: LiftedState<S, A, unknown> | undefined,
-    libConfig?: LibConfig
+    libConfig?: LibConfig,
   ) => void;
   active?: boolean;
   paused?: boolean;
@@ -21,8 +21,8 @@ export default class Monitor<S, A extends Action<unknown>> {
   constructor(
     update: (
       liftedState?: LiftedState<S, A, unknown> | undefined,
-      libConfig?: LibConfig
-    ) => void
+      libConfig?: LibConfig,
+    ) => void,
   ) {
     this.update = update;
   }

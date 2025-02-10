@@ -1,23 +1,37 @@
 import open from 'open';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import spawn from 'cross-spawn';
-import { Options } from '../options';
+import type { Options } from '../options.js';
+
+const require = createRequire(import.meta.url);
 
 export default async function openApp(app: true | string, options: Options) {
   if (app === true || app === 'electron') {
     try {
       const port = options.port ? `--port=${options.port}` : '';
+      const host = options.host ? `--host=${options.host}` : '';
+      const protocol = options.protocol ? `--protocol=${options.protocol}` : '';
+
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      spawn.sync(require('electron') as string, [
-        path.join(__dirname, '..', '..', 'app'),
+      spawn(require('electron') as string, [
+        path.join(
+          path.dirname(fileURLToPath(import.meta.url)),
+          '..',
+          '..',
+          'app',
+        ),
         port,
+        host,
+        protocol,
       ]);
     } catch (error) {
       /* eslint-disable no-console */
       if ((error as Error).message === "Cannot find module 'electron'") {
         // TODO: Move electron to dev-dependences to make our package installation faster when not needed.
         console.log(
-          '   \x1b[1;31m[Warn]\x1b[0m Electron module not installed.\n'
+          '   \x1b[1;31m[Warn]\x1b[0m Electron module not installed.\n',
         );
         /*
         We will use "npm" to install Electron via "npm install -D".
@@ -33,7 +47,7 @@ export default async function openApp(app: true | string, options: Options) {
   }
 
   await open(
-    `http://localhost:${options.port}/`,
-    app !== 'browser' ? { app: { name: app } } : undefined
+    `${options.protocol}://${options.host ?? 'localhost'}:${options.port}/`,
+    app !== 'browser' ? { app: { name: app } } : undefined,
   );
 }

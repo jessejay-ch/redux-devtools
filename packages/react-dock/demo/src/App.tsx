@@ -4,7 +4,7 @@ import Form from 'react-bootstrap/Form';
 import { BsX } from 'react-icons/bs';
 import styled from 'styled-components';
 
-import Dock from '../../src/Dock';
+import { Dock } from 'react-dock';
 
 const Root = styled.div`
   font-size: 16px;
@@ -51,7 +51,7 @@ interface State {
   size: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export default class App extends Component<{}, State> {
   state: State = {
     positionIdx: 0,

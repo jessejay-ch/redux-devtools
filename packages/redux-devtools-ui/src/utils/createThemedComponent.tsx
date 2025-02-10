@@ -1,12 +1,12 @@
 import React from 'react';
-import getDefaultTheme, { Theme } from '../themes/default';
 import { withTheme } from 'styled-components';
-import { Base16Theme } from 'base16';
+import type { Base16Theme } from 'react-base16-styling';
+import getDefaultTheme, { Theme } from '../themes/default';
 
 export default <C extends React.ComponentType<any>>(
   UnthemedComponent: React.ComponentProps<C> extends { theme?: Theme }
     ? C
-    : never
+    : never,
 ) => {
   return withTheme((props) => {
     return props.theme && props.theme.type ? (

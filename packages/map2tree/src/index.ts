@@ -1,17 +1,16 @@
-import isArray from 'lodash/isArray';
-import isPlainObject from 'lodash/isPlainObject';
-import mapValues from 'lodash/mapValues';
+import { isArray, isPlainObject, mapValues } from 'lodash-es';
 
 export interface Node {
   name: string;
-  children?: Node[] | null;
+  children?: this[];
+  object?: unknown;
   value?: unknown;
 }
 
 function visit(
   parent: Node,
   visitFn: (parent: Node) => void,
-  childrenFn: (parent: Node) => Node[] | undefined | null
+  childrenFn: (parent: Node) => Node[] | undefined | null,
 ) {
   if (!parent) return;
 
@@ -36,20 +35,19 @@ function getNode(tree: Node, key: string): Node | null {
         node = d;
       }
     },
-    (d) => d.children
+    (d) => d.children,
   );
 
   return node;
 }
 
 export function map2tree(
-  // eslint-disable-next-line @typescript-eslint/ban-types
   root: unknown,
   options: { key?: string; pushMethod?: 'push' | 'unshift' } = {},
-  tree: Node = { name: options.key || 'state', children: [] }
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  tree: Node = { name: options.key || 'state', children: [] },
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 ): Node | {} {
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   if (!isPlainObject(root) && root && !(root as { toJS: () => {} }).toJS) {
     return {};
   }
@@ -62,13 +60,13 @@ export function map2tree(
   }
 
   mapValues(
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     root && (root as { toJS: () => {} }).toJS
-      ? // eslint-disable-next-line @typescript-eslint/ban-types
+      ? // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         (root as { toJS: () => {} }).toJS()
-      : // eslint-disable-next-line @typescript-eslint/ban-types
+      : // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         (root as {}),
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     (maybeImmutable: { toJS?: () => {} }, key) => {
       const value =
         maybeImmutable && maybeImmutable.toJS
@@ -94,7 +92,7 @@ export function map2tree(
       currentNode.children![pushMethod](newNode);
 
       map2tree(value, { key, pushMethod }, tree);
-    }
+    },
   );
 
   return tree;

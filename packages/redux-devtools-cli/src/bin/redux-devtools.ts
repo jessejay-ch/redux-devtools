@@ -3,10 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import parseArgs from 'minimist';
 import chalk from 'chalk';
-import * as injectServer from './injectServer';
-import getOptions from '../options';
-import server from '../index';
-import openApp from './openApp';
+import * as injectServer from './injectServer.js';
+import getOptions from '../options.js';
+import server from '../index.js';
+import openApp from './openApp.js';
 
 const argv = parseArgs(process.argv.slice(2));
 
@@ -68,7 +68,7 @@ function injectRN(type: string, msg: string) {
         ? '.'
         : ', the file `' +
           path.join(module.name, injectServer.fullPath) +
-          '` not found.')
+          '` not found.'),
   );
 
   process.exit(pass ? 0 : 1);
@@ -77,20 +77,18 @@ function injectRN(type: string, msg: string) {
 if (argv.revert) {
   injectRN(
     argv.revert as string,
-    'Revert injection of ReduxDevTools server from React Native local server'
+    'Revert injection of ReduxDevTools server from React Native local server',
   );
 }
 if (argv.injectserver) {
   injectRN(
     argv.injectserver as string,
-    'Inject ReduxDevTools server into React Native local server'
+    'Inject ReduxDevTools server into React Native local server',
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-server(argv).then(async function (r) {
-  if (argv.open && argv.open !== 'false') {
-    await r.listener('ready').once();
-    await openApp(argv.open as string, options);
-  }
-});
+const response = await server(argv);
+if (argv.open && argv.open !== 'false') {
+  await response.ready;
+  await openApp(argv.open as string, options);
+}

@@ -2,28 +2,28 @@
 
 exports[`Toolbar renders correctly 1`] = `
 <div
-  class="sc-bqWxrE cDkpaR"
+  class="sc-jEACwC kawwwh"
 >
   <div
-    class="sc-eDvSVe goAuXT"
+    class="sc-dcJsrY dAhqLr"
   >
     <button
-      class="sc-dkrFOg gBSOcI"
+      class="sc-eqUAAy fNGiZB"
     >
       1
     </button>
   </div>
   <div
-    class="sc-ksBlkl kGEFah"
+    class="sc-cPiKLX jaimvX"
   />
   <div
-    class="sc-hBxehG ernVCh"
+    class="sc-dLMFU crJLZZ"
   />
   <div
-    class="sc-eDvSVe goAuXT"
+    class="sc-dcJsrY dAhqLr"
   >
     <button
-      class="sc-dkrFOg gBSOcI"
+      class="sc-eqUAAy fNGiZB"
     >
       2
     </button>
@@ -33,6 +33,6 @@ exports[`Toolbar renders correctly 1`] = `
 
 exports[`Toolbar renders with props 1`] = `
 <div
-  class="sc-bqWxrE bZThUM"
+  class="sc-jEACwC hdWhho"
 />
 `;

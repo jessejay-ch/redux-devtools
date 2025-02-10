@@ -13,7 +13,9 @@ import { ScriptLine } from '../utils/stack-frame';
 import generateAnsiHTML from '../utils/generateAnsiHTML';
 
 import { codeFrameColumns } from '@babel/code-frame';
-import { nicinabox as theme } from 'redux-devtools-themes';
+import { base16Themes } from 'react-base16-styling';
+
+const theme = base16Themes.nicinabox;
 
 interface StackFrameCodeBlockPropsType {
   lines: ScriptLine[];
@@ -63,7 +65,7 @@ function StackFrameCodeBlock(props: StackFrameCodeBlockPropsType) {
       forceColor: true,
       linesAbove: contextSize,
       linesBelow: contextSize,
-    }
+    },
   );
   const htmlHighlight = generateAnsiHTML(ansiHighlight);
   const code = document.createElement('code');
@@ -81,7 +83,7 @@ function StackFrameCodeBlock(props: StackFrameCodeBlockPropsType) {
       if (text == null) {
         continue;
       }
-      if (text.indexOf(` ${lineNum} |`) === -1) {
+      if (!text.includes(` ${lineNum} |`)) {
         continue;
       }
       // $FlowFixMe

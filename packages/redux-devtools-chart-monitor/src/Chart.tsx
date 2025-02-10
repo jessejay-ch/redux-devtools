@@ -1,9 +1,10 @@
 import React, { Component, createRef } from 'react';
-import PropTypes from 'prop-types';
-import { tree, NodeWithId, Primitive } from 'd3-state-visualizer';
+import { tree } from 'd3-state-visualizer';
+import type { Options } from 'd3-state-visualizer';
+import { base16Themes } from 'react-base16-styling';
+import type { Base16Theme } from 'react-base16-styling';
 import { Action, Dispatch } from 'redux';
 import { LiftedAction, LiftedState } from '@redux-devtools/core';
-import * as themes from 'redux-devtools-themes';
 import { ChartMonitorState } from './reducers';
 
 const wrapperStyle = {
@@ -11,94 +12,29 @@ const wrapperStyle = {
   height: '100%',
 };
 
-export interface Props<S, A extends Action<unknown>>
-  extends LiftedState<S, A, ChartMonitorState> {
+export interface Props<S, A extends Action<string>>
+  extends LiftedState<S, A, ChartMonitorState>,
+    Options {
   dispatch: Dispatch<LiftedAction<S, A, ChartMonitorState>>;
   preserveScrollTop: boolean;
   select: (state: S) => unknown;
-  theme: keyof typeof themes | themes.Base16Theme;
+  theme: keyof typeof base16Themes | Base16Theme;
   invertTheme: boolean;
 
   state: S | null;
-  isSorted: boolean;
-  heightBetweenNodesCoeff: number;
-  widthBetweenNodesCoeff: number;
-  onClickText: (datum: NodeWithId) => void;
-  tooltipOptions: {
-    disabled: boolean;
-    offset: {
-      left: number;
-      top: number;
-    };
-    indentationSize: number;
-    style: { [key: string]: Primitive } | undefined;
-  };
-  style: { [key: string]: Primitive } | undefined;
   defaultIsVisible?: boolean;
 }
 
-class Chart<S, A extends Action<unknown>> extends Component<Props<S, A>> {
-  static propTypes = {
-    state: PropTypes.object,
-    rootKeyName: PropTypes.string,
-    pushMethod: PropTypes.oneOf(['push', 'unshift']),
-    tree: PropTypes.shape({
-      name: PropTypes.string,
-      children: PropTypes.array,
-    }),
-    id: PropTypes.string,
-    style: PropTypes.shape({
-      node: PropTypes.shape({
-        colors: PropTypes.shape({
-          default: PropTypes.string,
-          parent: PropTypes.string,
-          collapsed: PropTypes.string,
-        }),
-        radius: PropTypes.number,
-      }),
-      text: PropTypes.shape({
-        colors: PropTypes.shape({
-          default: PropTypes.string,
-          hover: PropTypes.string,
-        }),
-      }),
-      link: PropTypes.object,
-    }),
-    size: PropTypes.number,
-    aspectRatio: PropTypes.number,
-    margin: PropTypes.shape({
-      top: PropTypes.number,
-      right: PropTypes.number,
-      bottom: PropTypes.number,
-      left: PropTypes.number,
-    }),
-    isSorted: PropTypes.bool,
-    heightBetweenNodesCoeff: PropTypes.number,
-    widthBetweenNodesCoeff: PropTypes.number,
-    transitionDuration: PropTypes.number,
-    onClickText: PropTypes.func,
-    tooltipOptions: PropTypes.shape({
-      disabled: PropTypes.bool,
-      left: PropTypes.number,
-      top: PropTypes.number,
-      offset: PropTypes.shape({
-        left: PropTypes.number,
-        top: PropTypes.number,
-      }),
-      indentationSize: PropTypes.number,
-      style: PropTypes.object,
-    }),
-  };
-
+class Chart<S, A extends Action<string>> extends Component<Props<S, A>> {
   divRef = createRef<HTMLDivElement>();
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   renderChart?: (state?: {} | null | undefined) => void;
 
   componentDidMount() {
     const { select, state, defaultIsVisible } = this.props;
     this.renderChart = tree(this.divRef.current!, this.props);
     if (defaultIsVisible) {
-      // eslint-disable-next-line @typescript-eslint/ban-types
+      // eslint-disable-next-line @typescript-eslint/no-empty-object-type
       this.renderChart(select(state!) as {} | null | undefined);
     }
   }
@@ -107,7 +43,7 @@ class Chart<S, A extends Action<unknown>> extends Component<Props<S, A>> {
     const { state, select, monitorState } = nextProps;
 
     if (monitorState.isVisible !== false) {
-      // eslint-disable-next-line @typescript-eslint/ban-types
+      // eslint-disable-next-line @typescript-eslint/no-empty-object-type
       this.renderChart!(select(state!) as {} | null | undefined);
     }
   }

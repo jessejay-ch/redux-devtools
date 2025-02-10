@@ -1,13 +1,20 @@
-import { createStore, compose, Reducer, Store, Action } from 'redux';
+import {
+  createStore,
+  compose,
+  Reducer,
+  Store,
+  Action,
+  StoreEnhancer,
+} from 'redux';
 import {
   ActionCreators,
   EnhancedStore,
   instrument,
+  LiftedAction,
   LiftedStore,
   LiftedState,
 } from '../src/instrument';
 import { from, Observable } from 'rxjs';
-import _ from 'lodash';
 
 type CounterAction = { type: 'INCREMENT' } | { type: 'DECREMENT' };
 function counter(state = 0, action: CounterAction) {
@@ -319,7 +326,7 @@ describe('instrument', () => {
   it('should replace the reducer without recomputing actions', () => {
     store = createStore(
       counter,
-      instrument(undefined, { shouldHotReload: false })
+      instrument(undefined, { shouldHotReload: false }),
     );
     expect(store.getState()).toBe(0);
     store.dispatch({ type: 'INCREMENT' });
@@ -333,7 +340,7 @@ describe('instrument', () => {
     expect(store.getState()).toBe(3);
 
     store.replaceReducer(
-      (() => ({ test: true } as unknown)) as Reducer<number, CounterAction>
+      (() => ({ test: true }) as unknown) as Reducer<number, CounterAction>,
     );
     const newStore = store as unknown as Store<{ test: boolean }>;
     expect(newStore.getState()).toEqual({ test: true });
@@ -345,7 +352,7 @@ describe('instrument', () => {
     });
     const storeWithBug = createStore(
       counterWithBug,
-      instrument(undefined, { shouldCatchErrors: true })
+      instrument(undefined, { shouldCatchErrors: true }),
     );
 
     storeWithBug.dispatch({ type: 'INCREMENT' });
@@ -355,7 +362,7 @@ describe('instrument', () => {
     const { computedStates } = storeWithBug.liftedStore.getState();
     expect(computedStates[2].error).toMatch(/ReferenceError/);
     expect(computedStates[3].error).toMatch(
-      /Interrupted by an error up the chain/
+      /Interrupted by an error up the chain/,
     );
     expect(spy.mock.calls[0][0].toString()).toMatch(/ReferenceError/);
 
@@ -367,7 +374,7 @@ describe('instrument', () => {
       store.dispatch({ type: undefined } as unknown as CounterAction);
     }).toThrow(
       'Actions may not have an undefined "type" property. ' +
-        'Have you misspelled a constant?'
+        'Have you misspelled a constant?',
     );
   });
 
@@ -380,7 +387,7 @@ describe('instrument', () => {
       store.dispatch(new (ActionClass as any)() as CounterAction);
     }).toThrow(
       'Actions must be plain objects. ' +
-        'Use custom middleware for async actions.'
+        'Use custom middleware for async actions.',
     );
   });
 
@@ -470,7 +477,7 @@ describe('instrument', () => {
     expect(reducerCalls).toBe(4);
 
     expect(monitoredLiftedStore.getState().computedStates).toBe(
-      savedComputedStates
+      savedComputedStates,
     );
   });
 
@@ -487,14 +494,22 @@ describe('instrument', () => {
 
     const savedComputedStates = monitoredLiftedStore.getState().computedStates;
 
-    monitoredLiftedStore.dispatch({ type: 'lol' } as Action);
+    monitoredLiftedStore.dispatch({ type: 'lol' } as unknown as LiftedAction<
+      number,
+      Action,
+      null
+    >);
     expect(reducerCalls).toBe(4);
 
-    monitoredLiftedStore.dispatch({ type: 'wat' } as Action);
+    monitoredLiftedStore.dispatch({ type: 'wat' } as unknown as LiftedAction<
+      number,
+      Action,
+      null
+    >);
     expect(reducerCalls).toBe(4);
 
     expect(monitoredLiftedStore.getState().computedStates).toBe(
-      savedComputedStates
+      savedComputedStates,
     );
   });
 
@@ -505,7 +520,7 @@ describe('instrument', () => {
     beforeEach(() => {
       configuredStore = createStore(
         counter,
-        instrument(undefined, { maxAge: 3 })
+        instrument(undefined, { maxAge: 3 }),
       );
       configuredLiftedStore = configuredStore.liftedStore;
     });
@@ -539,7 +554,7 @@ describe('instrument', () => {
       expect(configuredLiftedStore.getState().skippedActionIds).toContain(1);
       configuredStore.dispatch({ type: 'INCREMENT' });
       expect(configuredLiftedStore.getState().skippedActionIds).not.toContain(
-        1
+        1,
       );
     });
 
@@ -548,7 +563,7 @@ describe('instrument', () => {
 
       const storeWithBug = createStore(
         counterWithBug,
-        instrument(undefined, { maxAge: 3, shouldCatchErrors: true })
+        instrument(undefined, { maxAge: 3, shouldCatchErrors: true }),
       );
       const liftedStoreWithBug = storeWithBug.liftedStore;
       storeWithBug.dispatch({ type: 'DECREMENT' });
@@ -566,7 +581,7 @@ describe('instrument', () => {
 
       const storeWithBug = createStore(
         counterWithBug,
-        instrument(undefined, { maxAge: 3, shouldCatchErrors: true })
+        instrument(undefined, { maxAge: 3, shouldCatchErrors: true }),
       );
       const liftedStoreWithBug = storeWithBug.liftedStore;
       storeWithBug.dispatch({ type: 'DECREMENT' });
@@ -579,7 +594,7 @@ describe('instrument', () => {
 
       // Auto-commit 2 actions by "fixing" reducer bug, but introducing another.
       storeWithBug.replaceReducer(
-        counterWithAnotherBug as Reducer<number, CounterWithBugAction>
+        counterWithAnotherBug as Reducer<number, CounterWithBugAction>,
       );
       const liftedStoreWithAnotherBug =
         liftedStoreWithBug as unknown as LiftedStore<
@@ -588,12 +603,12 @@ describe('instrument', () => {
           null
         >;
       expect(liftedStoreWithAnotherBug.getState().stagedActionIds).toHaveLength(
-        5
+        5,
       );
 
       // Auto-commit 2 more actions by "fixing" other reducer bug.
       storeWithBug.replaceReducer(
-        counter as Reducer<number, CounterWithBugAction>
+        counter as Reducer<number, CounterWithBugAction>,
       );
       const liftedStore = liftedStoreWithBug as LiftedStore<
         number,
@@ -627,7 +642,7 @@ describe('instrument', () => {
 
       const storeWithBug = createStore(
         counterWithBug,
-        instrument(undefined, { maxAge: 3, shouldCatchErrors: true })
+        instrument(undefined, { maxAge: 3, shouldCatchErrors: true }),
       );
       const liftedStoreWithBug = storeWithBug.liftedStore;
 
@@ -651,7 +666,7 @@ describe('instrument', () => {
 
       const storeWithBug = createStore(
         counterWithBug,
-        instrument(undefined, { maxAge: 3, shouldCatchErrors: true })
+        instrument(undefined, { maxAge: 3, shouldCatchErrors: true }),
       );
       const liftedStoreWithBug = storeWithBug.liftedStore;
 
@@ -662,7 +677,7 @@ describe('instrument', () => {
 
       // Auto-commit 2 actions by "fixing" reducer bug.
       storeWithBug.replaceReducer(
-        counter as Reducer<number, CounterWithBugAction>
+        counter as Reducer<number, CounterWithBugAction>,
       );
       const liftedStore = liftedStoreWithBug as LiftedStore<
         number,
@@ -683,7 +698,7 @@ describe('instrument', () => {
 
       const storeWithBug = createStore(
         counterWithBug,
-        instrument(undefined, { maxAge: 3, shouldCatchErrors: true })
+        instrument(undefined, { maxAge: 3, shouldCatchErrors: true }),
       );
       const liftedStoreWithBug = storeWithBug.liftedStore;
 
@@ -695,7 +710,7 @@ describe('instrument', () => {
 
       // Auto-commit 2 actions by "fixing" reducer bug.
       storeWithBug.replaceReducer(
-        counter as Reducer<number, CounterWithBugAction>
+        counter as Reducer<number, CounterWithBugAction>,
       );
       const liftedStore = liftedStoreWithBug as LiftedStore<
         number,
@@ -716,7 +731,7 @@ describe('instrument', () => {
       const getMaxAge = jest.fn().mockImplementation(() => max);
       store = createStore(
         counter,
-        instrument(undefined, { maxAge: getMaxAge })
+        instrument(undefined, { maxAge: getMaxAge }),
       );
 
       expect(getMaxAge.mock.calls).toHaveLength(1);
@@ -809,7 +824,7 @@ describe('instrument', () => {
       function fn1() {
         monitoredStore = createStore(
           counter,
-          instrument(undefined, { trace: true })
+          instrument(undefined, { trace: true }),
         );
         monitoredLiftedStore = monitoredStore.liftedStore;
         monitoredStore.dispatch({ type: 'INCREMENT' });
@@ -824,10 +839,10 @@ describe('instrument', () => {
         expect(exportedState.actionsById[1].stack).toMatch(/\bfn3\b/);
         expect(exportedState.actionsById[1].stack).toMatch(/\bfn4\b/);
         expect(exportedState.actionsById[1].stack).toContain(
-          'instrument.spec.ts'
+          'instrument.spec.ts',
         );
         expect(exportedState.actionsById[1].stack!.split('\n')).toHaveLength(
-          10 + 1
+          10 + 1,
         ); // +1 is for `Error\n`
       }
 
@@ -850,7 +865,7 @@ describe('instrument', () => {
       function fn1() {
         monitoredStore = createStore(
           counter,
-          instrument(undefined, { trace: true, traceLimit: 3 })
+          instrument(undefined, { trace: true, traceLimit: 3 }),
         );
         monitoredLiftedStore = monitoredStore.liftedStore;
         monitoredStore.dispatch({ type: 'INCREMENT' });
@@ -863,10 +878,10 @@ describe('instrument', () => {
         expect(exportedState.actionsById[1].stack).toMatch(/\bfn3\b/);
         expect(exportedState.actionsById[1].stack).not.toMatch(/\bfn4\b/);
         expect(exportedState.actionsById[1].stack).toContain(
-          'instrument.spec.ts'
+          'instrument.spec.ts',
         );
         expect(exportedState.actionsById[1].stack!.split('\n')).toHaveLength(
-          3 + 1
+          3 + 1,
         );
       }
 
@@ -892,7 +907,7 @@ describe('instrument', () => {
       function fn1() {
         monitoredStore = createStore(
           counter,
-          instrument(undefined, { trace: true, traceLimit: 3 })
+          instrument(undefined, { trace: true, traceLimit: 3 }),
         );
         monitoredLiftedStore = monitoredStore.liftedStore;
         monitoredStore.dispatch({ type: 'INCREMENT' });
@@ -905,10 +920,10 @@ describe('instrument', () => {
         expect(exportedState.actionsById[1].stack).toMatch(/\bfn3\b/);
         expect(exportedState.actionsById[1].stack).not.toMatch(/\bfn4\b/);
         expect(exportedState.actionsById[1].stack).toContain(
-          'instrument.spec.ts'
+          'instrument.spec.ts',
         );
         expect(exportedState.actionsById[1].stack!.split('\n')).toHaveLength(
-          3 + 1
+          3 + 1,
         );
       }
 
@@ -933,7 +948,7 @@ describe('instrument', () => {
       Error.stackTraceLimit = 2;
       monitoredStore = createStore(
         counter,
-        instrument(undefined, { trace: true, traceLimit: 5 })
+        instrument(undefined, { trace: true, traceLimit: 5 }),
       );
       monitoredLiftedStore = monitoredStore.liftedStore;
       monitoredStore.dispatch({ type: 'INCREMENT' });
@@ -944,10 +959,10 @@ describe('instrument', () => {
       expect(typeof exportedState.actionsById[1].stack).toBe('string');
       expect(exportedState.actionsById[1].stack).toMatch(/^Error/);
       expect(exportedState.actionsById[1].stack).toContain(
-        'instrument.spec.ts'
+        'instrument.spec.ts',
       );
       expect(exportedState.actionsById[1].stack!.split('\n')).toHaveLength(
-        5 + 1
+        5 + 1,
       );
     });
 
@@ -958,7 +973,7 @@ describe('instrument', () => {
       function fn1() {
         monitoredStore = createStore(
           counter,
-          instrument(undefined, { trace: true })
+          instrument(undefined, { trace: true }),
         );
         monitoredLiftedStore = monitoredStore.liftedStore;
         monitoredStore.dispatch({ type: 'INCREMENT' });
@@ -972,10 +987,10 @@ describe('instrument', () => {
         expect(exportedState.actionsById[1].stack).toMatch(/\bfn3\b/);
         expect(exportedState.actionsById[1].stack).toMatch(/\bfn4\b/);
         expect(exportedState.actionsById[1].stack).toContain(
-          'instrument.spec.ts'
+          'instrument.spec.ts',
         );
         expect(exportedState.actionsById[1].stack!.split('\n')).toHaveLength(
-          10 + 1
+          10 + 1,
         );
       }
 
@@ -1000,7 +1015,7 @@ describe('instrument', () => {
       Error.captureStackTrace = undefined as unknown as () => unknown;
       monitoredStore = createStore(
         counter,
-        instrument(undefined, { trace: true, traceLimit: 5 })
+        instrument(undefined, { trace: true, traceLimit: 5 }),
       );
       monitoredLiftedStore = monitoredStore.liftedStore;
       monitoredStore.dispatch({ type: 'INCREMENT' });
@@ -1012,10 +1027,10 @@ describe('instrument', () => {
       expect(exportedState.actionsById[1].stack).toMatch(/^Error/);
       expect(exportedState.actionsById[1].stack).toContain('instrument.ts');
       expect(exportedState.actionsById[1].stack).toContain(
-        'instrument.spec.ts'
+        'instrument.spec.ts',
       );
       expect(exportedState.actionsById[1].stack!.split('\n')).toHaveLength(
-        5 + 3 + 1
+        5 + 3 + 1,
       );
     });
 
@@ -1023,7 +1038,7 @@ describe('instrument', () => {
       const traceFn = () => new Error().stack;
       monitoredStore = createStore(
         counter,
-        instrument(undefined, { trace: traceFn })
+        instrument(undefined, { trace: traceFn }),
       );
       monitoredLiftedStore = monitoredStore.liftedStore;
       monitoredStore.dispatch({ type: 'INCREMENT' });
@@ -1032,11 +1047,11 @@ describe('instrument', () => {
       expect(exportedState.actionsById[0].stack).toBeUndefined();
       expect(typeof exportedState.actionsById[1].stack).toBe('string');
       expect(exportedState.actionsById[1].stack).toContain(
-        'at Object.performAction'
+        'at Object.performAction',
       );
       expect(exportedState.actionsById[1].stack).toContain('instrument.ts');
       expect(exportedState.actionsById[1].stack).toContain(
-        'instrument.spec.ts'
+        'instrument.spec.ts',
       );
     });
 
@@ -1047,7 +1062,7 @@ describe('instrument', () => {
           const traceFn = () => stack! + new Error().stack!;
           monitoredStore = createStore(
             counter,
-            instrument(undefined, { trace: traceFn })
+            instrument(undefined, { trace: traceFn }),
           );
           monitoredLiftedStore = monitoredStore.liftedStore;
           monitoredStore.dispatch({ type: 'INCREMENT' });
@@ -1056,11 +1071,11 @@ describe('instrument', () => {
           expect(exportedState.actionsById[0].stack).toBeUndefined();
           expect(typeof exportedState.actionsById[1].stack).toBe('string');
           expect(exportedState.actionsById[1].stack).toContain(
-            'at Object.performAction'
+            'at Object.performAction',
           );
           expect(exportedState.actionsById[1].stack).toContain('instrument.ts');
           expect(exportedState.actionsById[1].stack).toContain(
-            'instrument.spec.ts'
+            'instrument.spec.ts',
           );
           done();
         });
@@ -1088,7 +1103,7 @@ describe('instrument', () => {
       const importMonitoredLiftedStore = importMonitoredStore.liftedStore;
 
       importMonitoredLiftedStore.dispatch(
-        ActionCreators.importState(exportedState)
+        ActionCreators.importState(exportedState),
       );
       expect(importMonitoredLiftedStore.getState()).toEqual(exportedState);
     });
@@ -1101,7 +1116,7 @@ describe('instrument', () => {
       importMonitoredStore.dispatch({ type: 'DECREMENT' });
 
       importMonitoredLiftedStore.dispatch(
-        ActionCreators.importState(exportedState)
+        ActionCreators.importState(exportedState),
       );
       expect(importMonitoredLiftedStore.getState()).toEqual(exportedState);
     });
@@ -1116,21 +1131,21 @@ describe('instrument', () => {
       delete noComputedExportedState.computedStates;
 
       importMonitoredLiftedStore.dispatch(
-        ActionCreators.importState(noComputedExportedState, true)
+        ActionCreators.importState(noComputedExportedState, true),
       );
 
       const expectedImportedState = Object.assign({}, noComputedExportedState, {
         computedStates: undefined,
       });
       expect(importMonitoredLiftedStore.getState()).toEqual(
-        expectedImportedState
+        expectedImportedState,
       );
     });
 
     it('should include stack trace', () => {
       const importMonitoredStore = createStore(
         counter,
-        instrument(undefined, { trace: true })
+        instrument(undefined, { trace: true }),
       );
       const importMonitoredLiftedStore = importMonitoredStore.liftedStore;
 
@@ -1144,24 +1159,26 @@ describe('instrument', () => {
       importMonitoredLiftedStore.dispatch(ActionCreators.importState(oldState));
       expect(importMonitoredLiftedStore.getState()).toEqual(oldState);
       expect(
-        importMonitoredLiftedStore.getState().actionsById[0].stack
+        importMonitoredLiftedStore.getState().actionsById[0].stack,
       ).toBeUndefined();
       expect(importMonitoredLiftedStore.getState().actionsById[1]).toEqual(
-        oldState.actionsById[1]
+        oldState.actionsById[1],
       );
     });
   });
 
-  function filterStackAndTimestamps<S, A extends Action<unknown>>(
-    state: LiftedState<S, A, null>
+  function filterStackAndTimestamps<S, A extends Action<string>>(
+    state: LiftedState<S, A, null>,
   ) {
-    state.actionsById = _.mapValues(state.actionsById, (action) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      delete action.timestamp;
-      delete action.stack;
-      return action;
-    });
+    state.actionsById = Object.fromEntries(
+      Object.entries(state.actionsById).map(([actionId, action]) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        delete action.timestamp;
+        delete action.stack;
+        return [actionId, action];
+      }),
+    );
     return state;
   }
 
@@ -1189,10 +1206,10 @@ describe('instrument', () => {
       const importMonitoredLiftedStore = importMonitoredStore.liftedStore;
 
       importMonitoredLiftedStore.dispatch(
-        ActionCreators.importState(savedActions)
+        ActionCreators.importState(savedActions),
       );
       expect(
-        filterStackAndTimestamps(importMonitoredLiftedStore.getState())
+        filterStackAndTimestamps(importMonitoredLiftedStore.getState()),
       ).toEqual(exportedState);
     });
 
@@ -1204,17 +1221,17 @@ describe('instrument', () => {
       importMonitoredStore.dispatch({ type: 'DECREMENT' });
 
       importMonitoredLiftedStore.dispatch(
-        ActionCreators.importState(savedActions)
+        ActionCreators.importState(savedActions),
       );
       expect(
-        filterStackAndTimestamps(importMonitoredLiftedStore.getState())
+        filterStackAndTimestamps(importMonitoredLiftedStore.getState()),
       ).toEqual(exportedState);
     });
 
     it('should include stack trace', () => {
       const importMonitoredStore = createStore(
         counter,
-        instrument(undefined, { trace: true })
+        instrument(undefined, { trace: true }),
       );
       const importMonitoredLiftedStore = importMonitoredStore.liftedStore;
 
@@ -1222,16 +1239,16 @@ describe('instrument', () => {
       importMonitoredStore.dispatch({ type: 'DECREMENT' });
 
       importMonitoredLiftedStore.dispatch(
-        ActionCreators.importState(savedActions)
+        ActionCreators.importState(savedActions),
       );
       expect(
-        importMonitoredLiftedStore.getState().actionsById[0].stack
+        importMonitoredLiftedStore.getState().actionsById[0].stack,
       ).toBeUndefined();
       expect(
-        typeof importMonitoredLiftedStore.getState().actionsById[1].stack
+        typeof importMonitoredLiftedStore.getState().actionsById[1].stack,
       ).toBe('string');
       expect(
-        filterStackAndTimestamps(importMonitoredLiftedStore.getState())
+        filterStackAndTimestamps(importMonitoredLiftedStore.getState()),
       ).toEqual(exportedState);
     });
   });
@@ -1264,7 +1281,7 @@ describe('instrument', () => {
     it('should start locked', () => {
       store = createStore(
         counter,
-        instrument(undefined, { shouldStartLocked: true })
+        instrument(undefined, { shouldStartLocked: true }),
       );
       store.dispatch({ type: 'INCREMENT' });
       expect(store.liftedStore.getState().isLocked).toBe(true);
@@ -1276,7 +1293,7 @@ describe('instrument', () => {
         { type: 'INCREMENT' },
       ] as const;
       store.liftedStore.dispatch(
-        ActionCreators.importState<number, CounterAction, null>(savedActions)
+        ActionCreators.importState<number, CounterAction, null>(savedActions),
       );
       expect(store.liftedStore.getState().nextActionId).toBe(3);
       expect(store.getState()).toBe(2);
@@ -1328,7 +1345,7 @@ describe('instrument', () => {
     it('should maintain the history while paused', () => {
       store = createStore(
         counter,
-        instrument(undefined, { pauseActionType: '@@PAUSED' })
+        instrument(undefined, { pauseActionType: '@@PAUSED' }),
       );
       store.dispatch({ type: 'INCREMENT' });
       store.dispatch({ type: 'INCREMENT' });
@@ -1365,8 +1382,10 @@ describe('instrument', () => {
 
   it('throws if reducer is not a function', () => {
     expect(() =>
-      createStore(undefined as unknown as Reducer, instrument())
-    ).toThrow('Expected the reducer to be a function.');
+      createStore(undefined as unknown as Reducer, instrument()),
+    ).toThrow(
+      "Expected the root reducer to be a function. Instead, received: 'undefined'",
+    );
   });
 
   it('warns if the reducer is not a function but has a default field that is', () => {
@@ -1377,22 +1396,22 @@ describe('instrument', () => {
             // noop
           },
         } as unknown as Reducer,
-        instrument()
-      )
+        instrument(),
+      ),
     ).toThrow(
-      'Expected the reducer to be a function. ' +
-        'Instead got an object with a "default" field. ' +
-        'Did you pass a module instead of the default export? ' +
-        'Try passing require(...).default instead.'
+      "Expected the root reducer to be a function. Instead, received: 'object'",
     );
   });
 
   it('throws if there are more than one instrument enhancer included', () => {
     expect(() => {
-      createStore(counter, compose(instrument(), instrument()));
+      createStore(
+        counter,
+        compose(instrument(), instrument()) as StoreEnhancer,
+      );
     }).toThrow(
       'DevTools instrumentation should not be applied more than once. ' +
-        'Check your store configuration.'
+        'Check your store configuration.',
     );
   });
 });

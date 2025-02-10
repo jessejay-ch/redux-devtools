@@ -1,9 +1,10 @@
 import { LIFTED_ACTION } from '@redux-devtools/app';
+import { store } from './index';
 
 export function getReport(
   reportId: string,
   tabId: string | number,
-  instanceId: number
+  instanceId: number,
 ) {
   chrome.storage.local.get(['s:hostname', 's:port', 's:secure'], (options) => {
     if (!options['s:hostname'] || !options['s:port']) return;
@@ -24,7 +25,7 @@ export function getReport(
       .then((json) => {
         const { payload, preloadedState } = json;
         if (!payload) return;
-        window.store.dispatch({
+        store.dispatch({
           type: LIFTED_ACTION,
           message: 'IMPORT',
           state: JSON.stringify({ payload, preloadedState }),

@@ -1,5 +1,35 @@
 # Change Log
 
+## 3.0.0
+
+### Major Changes
+
+- 191d419: Convert d3 packages to ESM
+
+### Patch Changes
+
+- Updated dependencies [191d419]
+  - d3tooltip@4.0.0
+  - map2tree@4.0.0
+
+## 2.0.0
+
+### Major Changes
+
+- b323f77d: Upgrade D3
+
+  - Remove UMD build.
+  - Split `style` option into `chartStyles`, `nodeStyleOptions`, `textStyleOptions`, and `linkStyles`.
+  - The shape of the argument passed to the `onClickText` option has been updated.
+  - Rename `InputOptions` to `Options`, `Primitive` to `StyleValue`, and `NodeWithId` to `HierarchyPointNode<Node>`.
+
+### Patch Changes
+
+- Updated dependencies [b323f77d]
+- Updated dependencies [b323f77d]
+  - d3tooltip@3.0.0
+  - map2tree@3.0.0
+
 ## [1.4.0](https://github.com/reduxjs/redux-devtools/compare/d3-state-visualizer@1.3.4...d3-state-visualizer@1.4.0) (2021-03-06)
 
 ### Features

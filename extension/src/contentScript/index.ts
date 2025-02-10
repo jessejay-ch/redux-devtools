@@ -1,7 +1,10 @@
+import '../chromeApiMock';
 import {
-  injectOptions,
-  getOptionsFromBg,
+  getOptions,
   isAllowed,
+  Options,
+  prefetchOptions,
+  prepareOptionsForPage,
 } from '../options/syncOptions';
 import type { TabMessage } from '../background/store/apiMiddleware';
 import type {
@@ -15,6 +18,7 @@ import {
   DispatchAction as AppDispatchAction,
 } from '@redux-devtools/app';
 import { LiftedState } from '@redux-devtools/instrument';
+
 const source = '@devtools-extension';
 const pageSource = '@devtools-page';
 // Chrome message limit is 64 MB, but we're using 32 MB to include other object's parts
@@ -82,6 +86,13 @@ interface UpdateAction {
   readonly source: typeof source;
 }
 
+interface OptionsAction {
+  readonly type: 'OPTIONS';
+  readonly options: Options;
+  readonly id: undefined;
+  readonly source: typeof source;
+}
+
 export type ContentScriptToPageScriptMessage =
   | StartAction
   | StopAction
@@ -89,20 +100,21 @@ export type ContentScriptToPageScriptMessage =
   | ImportAction
   | ActionAction
   | ExportAction
-  | UpdateAction;
+  | UpdateAction
+  | OptionsAction;
 
-interface ImportStatePayload<S, A extends Action<unknown>> {
+interface ImportStatePayload<S, A extends Action<string>> {
   readonly type: 'IMPORT_STATE';
   readonly nextLiftedState: LiftedState<S, A, unknown> | readonly A[];
   readonly preloadedState?: S;
 }
 
-interface ImportStateDispatchAction<S, A extends Action<unknown>> {
+interface ImportStateDispatchAction<S, A extends Action<string>> {
   readonly type: 'DISPATCH';
   readonly payload: ImportStatePayload<S, A>;
 }
 
-export type ListenerMessage<S, A extends Action<unknown>> =
+export type ListenerMessage<S, A extends Action<string>> =
   | StartAction
   | StopAction
   | DispatchAction
@@ -110,6 +122,7 @@ export type ListenerMessage<S, A extends Action<unknown>> =
   | ActionAction
   | ExportAction
   | UpdateAction
+  | OptionsAction
   | ImportStateDispatchAction<S, A>;
 
 function postToPageScript(message: ContentScriptToPageScriptMessage) {
@@ -154,8 +167,13 @@ function connect() {
           source,
         });
       }
-    } else if ('options' in message) {
-      injectOptions(message.options);
+    } else if (message.type === 'OPTIONS') {
+      postToPageScript({
+        type: message.type,
+        options: prepareOptionsForPage(message.options),
+        id: undefined,
+        source,
+      });
     } else {
       postToPageScript({
         type: message.type,
@@ -203,11 +221,13 @@ export type SplitMessage =
   | SplitMessageChunk
   | SplitMessageEnd;
 
-function tryCatch<S, A extends Action<unknown>>(
+function tryCatch<S, A extends Action<string>>(
   fn: (
-    args: PageScriptToContentScriptMessageWithoutDisconnect<S, A> | SplitMessage
+    args:
+      | PageScriptToContentScriptMessageWithoutDisconnect<S, A>
+      | SplitMessage,
   ) => void,
-  args: PageScriptToContentScriptMessageWithoutDisconnect<S, A>
+  args: PageScriptToContentScriptMessageWithoutDisconnect<S, A>,
 ) {
   try {
     return fn(args);
@@ -234,7 +254,7 @@ function tryCatch<S, A extends Action<unknown>>(
         }
         newArgs[key as keyof typeof newArgs] = arg;
       });
-      fn(newArgs as any);
+      fn(newArgs as SplitMessage);
       for (let i = 0; i < toSplit.length; i++) {
         for (let j = 0; j < toSplit[i][1].length; j += maxChromeMsgSize) {
           fn({
@@ -261,31 +281,38 @@ interface InitInstanceContentScriptToBackgroundMessage {
   readonly instanceId: number;
 }
 
-interface RelayMessage<S, A extends Action<unknown>> {
+interface RelayMessage<S, A extends Action<string>> {
   readonly name: 'RELAY';
   readonly message:
     | PageScriptToContentScriptMessageWithoutDisconnectOrInitInstance<S, A>
     | SplitMessage;
 }
 
-export type ContentScriptToBackgroundMessage<S, A extends Action<unknown>> =
+export type ContentScriptToBackgroundMessage<S, A extends Action<string>> =
   | InitInstanceContentScriptToBackgroundMessage
   | RelayMessage<S, A>;
 
-function postToBackground<S, A extends Action<unknown>>(
-  message: ContentScriptToBackgroundMessage<S, A>
+function postToBackground<S, A extends Action<string>>(
+  message: ContentScriptToBackgroundMessage<S, A>,
 ) {
   bg!.postMessage(message);
 }
 
-function send<S, A extends Action<unknown>>(
+function send<S, A extends Action<string>>(
   message:
     | PageScriptToContentScriptMessageWithoutDisconnect<S, A>
-    | SplitMessage
+    | SplitMessage,
 ) {
   if (!connected) connect();
   if (message.type === 'INIT_INSTANCE') {
-    getOptionsFromBg();
+    getOptions((options) => {
+      postToPageScript({
+        type: 'OPTIONS',
+        options: prepareOptionsForPage(options),
+        id: undefined,
+        source,
+      });
+    });
     postToBackground({ name: 'INIT_INSTANCE', instanceId: message.instanceId });
   } else {
     postToBackground({ name: 'RELAY', message });
@@ -293,8 +320,8 @@ function send<S, A extends Action<unknown>>(
 }
 
 // Resend messages from the page to the background script
-function handleMessages<S, A extends Action<unknown>>(
-  event: MessageEvent<PageScriptToContentScriptMessage<S, A>>
+function handleMessages<S, A extends Action<string>>(
+  event: MessageEvent<PageScriptToContentScriptMessage<S, A>>,
 ) {
   if (!isAllowed()) return;
   if (!event || event.source !== window || typeof event.data !== 'object') {
@@ -312,5 +339,7 @@ function handleMessages<S, A extends Action<unknown>>(
 
   tryCatch(send, message);
 }
+
+prefetchOptions();
 
 window.addEventListener('message', handleMessages, false);

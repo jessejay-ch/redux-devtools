@@ -1,5 +1,6 @@
-import Immutable from 'immutable';
-import { Action, ActionCreator, compose, StoreEnhancer } from 'redux';
+import type Immutable from 'immutable';
+import { compose } from 'redux';
+import type { Action, ActionCreator, StoreEnhancer } from 'redux';
 
 export interface EnhancerOptions {
   /**
@@ -219,7 +220,7 @@ export interface Config extends EnhancerOptions {
 
 interface ConnectResponse {
   init: (state: unknown) => void;
-  send: (action: Action<unknown>, state: unknown) => void;
+  send: (action: Action<string>, state: unknown) => void;
 }
 
 interface ReduxDevtoolsExtension {
@@ -227,9 +228,25 @@ interface ReduxDevtoolsExtension {
   connect: (preConfig: Config) => ConnectResponse;
 }
 
+export type InferComposedStoreExt<StoreEnhancers> = StoreEnhancers extends [
+  infer HeadStoreEnhancer,
+  ...infer RestStoreEnhancers,
+]
+  ? HeadStoreEnhancer extends StoreEnhancer<infer StoreExt>
+    ? StoreExt & InferComposedStoreExt<RestStoreEnhancers>
+    : never
+  : // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    {};
+
 export interface ReduxDevtoolsExtensionCompose {
-  (config: Config): (...funcs: StoreEnhancer[]) => StoreEnhancer;
-  (...funcs: StoreEnhancer[]): StoreEnhancer;
+  (
+    config: Config,
+  ): <StoreEnhancers extends readonly StoreEnhancer[]>(
+    ...funcs: StoreEnhancers
+  ) => StoreEnhancer<InferComposedStoreExt<StoreEnhancers>>;
+  <StoreEnhancers extends readonly StoreEnhancer[]>(
+    ...funcs: StoreEnhancers
+  ): StoreEnhancer<InferComposedStoreExt<StoreEnhancers>>;
 }
 
 declare global {
@@ -240,9 +257,13 @@ declare global {
 }
 
 function extensionComposeStub(
-  config: Config
-): (...funcs: StoreEnhancer[]) => StoreEnhancer;
-function extensionComposeStub(...funcs: StoreEnhancer[]): StoreEnhancer;
+  config: Config,
+): <StoreEnhancers extends readonly StoreEnhancer[]>(
+  ...funcs: StoreEnhancers
+) => StoreEnhancer<InferComposedStoreExt<StoreEnhancers>>;
+function extensionComposeStub<StoreEnhancers extends readonly StoreEnhancer[]>(
+  ...funcs: StoreEnhancers
+): StoreEnhancer<InferComposedStoreExt<StoreEnhancers>>;
 function extensionComposeStub(...funcs: [Config] | StoreEnhancer[]) {
   if (funcs.length === 0) return undefined;
   if (typeof funcs[0] === 'object') return compose;

@@ -2,10 +2,10 @@
 
 exports[`Button renders correctly 1`] = `
 <div
-  class="sc-eDvSVe goAuXT"
+  class="sc-dcJsrY dAhqLr"
 >
   <button
-    class="sc-dkrFOg gBSOcI"
+    class="sc-eqUAAy fNGiZB"
   >
     Text
   </button>

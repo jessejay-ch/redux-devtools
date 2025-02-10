@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import semver from 'semver';
-import { Options } from '../options';
+import type { Options } from '../options.js';
 
 const name = '@redux-devtools/cli';
 const startFlag = '/* ' + name + ' start */';
@@ -23,7 +23,7 @@ const serverFlags: { [moduleName: string]: { [version: string]: string } } = {
 
 function getModuleVersion(modulePath: string): string {
   return JSON.parse(
-    fs.readFileSync(path.join(modulePath, 'package.json'), 'utf-8')
+    fs.readFileSync(path.join(modulePath, 'package.json'), 'utf-8'),
   ).version;
 }
 
@@ -46,7 +46,7 @@ export const fullPath = path.join(dir, file);
 export function inject(
   modulePath: string,
   options: Options,
-  moduleName: string
+  moduleName: string,
 ) {
   const filePath = path.join(modulePath, fullPath);
   if (!fs.existsSync(filePath)) return false;
@@ -56,7 +56,7 @@ export function inject(
     startFlag,
     '    require("' + name + '")(' + JSON.stringify(options) + ')',
     '      .then(_remotedev =>',
-    '        _remotedev.on("ready", () => {',
+    '        _remotedev.ready.then(() => {',
     '          if (!_remotedev.portAlreadyUsed) console.log("-".repeat(80));',
     '      ' + serverFlag,
     '        })',
@@ -75,7 +75,7 @@ export function inject(
     filePath,
     serverCode.substr(0, start) +
       code +
-      serverCode.substr(end, serverCode.length)
+      serverCode.substr(end, serverCode.length),
   );
   return true;
 }
@@ -83,7 +83,7 @@ export function inject(
 export function revert(
   modulePath: string,
   options: Options,
-  moduleName: string
+  moduleName: string,
 ) {
   const filePath = path.join(modulePath, fullPath);
   if (!fs.existsSync(filePath)) return false;
@@ -97,7 +97,7 @@ export function revert(
       filePath,
       serverCode.substr(0, start) +
         serverFlag +
-        serverCode.substr(end, serverCode.length)
+        serverCode.substr(end, serverCode.length),
     );
   }
   return true;
